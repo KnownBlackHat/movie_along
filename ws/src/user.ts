@@ -21,7 +21,6 @@ export class User {
 
         this.ws.on('message', (data) => {
             let msg: Message = JSON.parse(data.toString())
-            console.log('recv: ', msg.action);
             if (msg.action === "offer")
                 this.room.onOffer(msg.sdp, this.name, msg.roomName);
             else if (msg.action === 'answer')

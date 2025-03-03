@@ -1,0 +1,74 @@
+version: "3.7"
+
+x-restart-policy: &restart_policy
+  restart: unless-stopped
+
+services:
+
+
+  mediaserver:
+    <<: *restart_policy
+    container_name: mediaserver
+    
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./videos:/usr/share/nginx/html
+
+
+    ports:
+      - "8080:80"
+    
+    networks:
+      - ai
+
+  ws:
+    <<: *restart_policy
+    container_name: ws
+    build:
+      context: ./ws/.
+      dockerfile: Dockerfile
+
+    volumes:
+      - ./ws:/app
+
+
+    networks:
+        - ai
+
+    ports:
+      - 8000:8000
+
+
+  frontend:
+    <<: *restart_policy
+    container_name: frontend
+
+    build:
+      context: ./frontend/.
+      dockerfile: Dockerfile
+
+    tty: true
+
+    networks:
+      - ai
+
+    depends_on:
+      - ws
+
+    volumes:
+      - ./frontend:/app
+
+    environment:
+      - VITE_WS=ws://0.0.0.0:8000
+      - VITE_MSU=http://0.0.0.0:8080
+
+    ports:
+      - 80:5173
+
+
+
+networks:
+    ai:
+      name: ai
+

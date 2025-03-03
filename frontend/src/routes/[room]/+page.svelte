@@ -84,7 +84,7 @@
 
 	const ws = new WebSocket(
 		//`wss:///falls-infections-fuji-fe.trycloudflare.com?room=${$page.params.room}&user=${userName}`
-		`ws:///0.0.0.0:8000?room=${$page.params.room}&user=${userName}`
+		`${import.meta.env.VITE_WS}?room=${$page.params.room}&user=${userName}`
 	);
 	let wsstate = $state(ws?.readyState);
 
@@ -243,7 +243,7 @@
 	<div class="flex h-64 w-full items-center justify-center border-2 border-white">
 		<video id="player" class="video-js vjs-default-skin vjs-fill" controls bind:this={videoElement}>
 			<track kind="captions" />
-			<source type="application/x-mpegURL" src="http://localhost/index.m3u8" />
+			<source type="application/x-mpegURL" src={`${import.meta.env.VITE_MSU}/index.m3u8`} />
 		</video>
 	</div>
 
