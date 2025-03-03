@@ -1,0 +1,17 @@
+{
+  "name": "ws",
+  "scripts": {
+    "dev": "tsc-watch --onSuccess 'node dist/index'"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/ws": "^8.5.14",
+    "tsc-watch": "^6.2.1",
+    "ws": "^8.18.0"
+  }
+}
