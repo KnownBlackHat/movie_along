@@ -15,6 +15,9 @@ export type Room = {
 }
 
 export type Message = {
+    action: 'update-timestamp';
+    timestamp: number;
+} | {
     action: 'offer';
     sdp: string;
     roomName: string;

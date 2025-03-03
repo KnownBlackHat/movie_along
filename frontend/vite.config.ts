@@ -5,6 +5,6 @@ import { defineConfig } from 'vite';
 export default defineConfig({
     plugins: [sveltekit(), tailwindcss()],
     server: {
-        allowedHosts: ['maryland-positions-seventh-prisoner.trycloudflare.com'],
+        allowedHosts: ['twist-does-fans-covers.trycloudflare.com'],
     }
 });

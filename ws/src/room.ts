@@ -59,5 +59,14 @@ export class Room {
         }))
     }
 
+    onTimeStampUpdate(senderName: string, timestamp: number) {
+        const recvUser = this.user1?.name === senderName ? this.user2 : this.user1
+        recvUser?.ws.send(JSON.stringify({
+            action: 'update-timestamp',
+            timestamp
+        }))
+
+    }
+
 
 }

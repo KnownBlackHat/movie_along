@@ -30,6 +30,8 @@ export class User {
                 this.room.onMsg(msg.userName, msg.msg);
             else if (msg.action === 'add-ice-candidates')
                 this.room.onIceCandidates(this.name, msg.candidate, msg.type)
+            else if (msg.action === 'update-timestamp')
+                this.room.onTimeStampUpdate(this.name, msg.timestamp)
         });
 
         // setInterval(() =>

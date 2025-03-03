@@ -1,7 +1,15 @@
 <script lang="ts">
+	import videojs from 'video.js';
+	import 'video.js/dist/video-js.min.css';
+	import { onMount } from 'svelte';
+	import type Player from 'video.js/dist/types/player';
 	import { page } from '$app/stores';
 
 	type Message =
+		| {
+				action: 'update-timestamp';
+				timestamp: number;
+		  }
 		| {
 				action: 'send-offer';
 				roomName: string;
@@ -36,7 +44,6 @@
 	let messages: MSG[] = $state([]);
 
 	let localaudioTracks: MediaStreamTrack;
-	let remoteaudioTracks: MediaStreamTrack;
 
 	let sendingpc = $state<RTCPeerConnection | null>(null);
 	let recivingpc = $state<RTCPeerConnection | null>(null);
@@ -44,6 +51,24 @@
 	let mic: boolean = true;
 
 	let audioElement: HTMLAudioElement;
+	let videoElement: HTMLVideoElement;
+	let player: Player;
+
+	onMount(() => {
+		player = videojs('player');
+
+		player.on('timeupdate', () => {
+			if (ws && ws.readyState === WebSocket.OPEN && videoElement.played) {
+				const payload: Message = {
+					action: 'update-timestamp',
+					timestamp: videoElement.currentTime
+				};
+				ws.send(JSON.stringify(payload));
+			}
+		});
+
+		return () => player.dispose();
+	});
 
 	const getMic = async () => {
 		const stream = await window.navigator.mediaDevices.getUserMedia({
@@ -57,7 +82,10 @@
 
 	const userName = $page.url.searchParams.get('user') ?? 'create';
 
-	const ws = new WebSocket(`ws://0.0.0.0:8000?room=${$page.params.room}&user=${userName}`);
+	const ws = new WebSocket(
+		//`wss:///falls-infections-fuji-fe.trycloudflare.com?room=${$page.params.room}&user=${userName}`
+		`ws:///0.0.0.0:8000?room=${$page.params.room}&user=${userName}`
+	);
 	let wsstate = $state(ws?.readyState);
 
 	const webRtcHandler = async (msg: Message) => {
@@ -98,7 +126,8 @@
 			pc.setRemoteDescription(msg.sdp);
 			const sdp = await pc.createAnswer();
 			pc.setLocalDescription(sdp);
-			audioElement.srcObject = new MediaStream();
+			const stream = new MediaStream();
+			audioElement.srcObject = stream;
 
 			/*
 			pc.ontrack = (event) => {
@@ -131,10 +160,11 @@
 			ws.send(JSON.stringify(payload));
 
 			setTimeout(() => {
-				const track = pc.getTransceivers()[0].receiver.track;
-				// @ts-expect-error sure
-				audioElement.srcObject?.addTrack(track);
-				audioElement.play();
+				const audiotrack = pc.getTransceivers()[0].receiver.track;
+				//const videotrack = pc.getTransceivers()[1].receiver.track;
+				console.log('recieving', audiotrack);
+				stream.addTrack(audiotrack);
+				//stream.addTrack(videotrack);
 			}, 2000);
 		} else if (msg.action === 'answer') {
 			console.log('answer');
@@ -173,6 +203,13 @@
 
 		if (msg.action === 'msg') {
 			messages.push({ author: msg.userName, msg: msg.msg });
+		} else if (msg.action === 'update-timestamp') {
+			const timestamp = ((videoElement.currentTime - msg.timestamp) ** 2) ** (1 / 2);
+			if (timestamp >= 2) {
+				console.log('remote told to update timestamp');
+				videoElement.currentTime = msg.timestamp;
+				if (videoElement.paused) videoElement.play();
+			}
 		}
 		setTimeout(() => webRtcHandler(msg), 1000);
 	});
@@ -204,8 +241,9 @@
 	class="mt-10 flex flex-col items-center justify-center space-y-20 p-4 md:flex-row md:space-x-8"
 >
 	<div class="flex h-64 w-full items-center justify-center border-2 border-white">
-		<video autoplay controls class="size-full" bind:this={audioElement}>
+		<video id="player" class="video-js vjs-default-skin vjs-fill" controls bind:this={videoElement}>
 			<track kind="captions" />
+			<source type="application/x-mpegURL" src="http://localhost/index.m3u8" />
 		</video>
 	</div>
 
@@ -239,6 +277,6 @@
 				Send
 			</button>
 		</div>
-		<audio autoplay class="size-24 bg-blue-900"> </audio>
+		<audio autoplay class="size-24 bg-blue-900" bind:this={audioElement}> </audio>
 	</div>
 </div>
