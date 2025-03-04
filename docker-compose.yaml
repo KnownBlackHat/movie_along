@@ -17,7 +17,7 @@ services:
 
 
     ports:
-      - "8080:80"
+      - "8080:8011"
     
     networks:
       - ai
@@ -60,8 +60,8 @@ services:
       - ./frontend:/app
 
     environment:
-      - VITE_WS=ws://0.0.0.0:8000
-      - VITE_MSU=http://0.0.0.0:8080
+      - VITE_WS=wss://assign-cl-rescue-stick.trycloudflare.com
+      - VITE_MSU=https://christina-reed-vs-bee.trycloudflare.com
 
     ports:
       - 80:5173
